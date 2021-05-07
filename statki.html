@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #ships {
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+            width: auto;
+        }
+
+        #table {
+            border: solid 1px black;
+            display: flex;
+            flex-direction: column;
+            width: auto;
+        }
+
+        td {
+            width: 40px;
+            height: 40px;
+            border: solid 1px black;
+            font-size: 30px;
+
+        }
+
+        .blue {
+            background-color: blue;
+        }
+
+        .komorka {
+            width: 30px;
+            height: 30px;
+            border: solid 1px black;
+        }
+
+        .poziomo {
+            display: flex;
+            flex-direction: row;
+            margin: 5px;
+        }
+
+        #prawatable {
+            position: relative;
+            margin-left: 100px;
+        }
+
+        #naglowek {
+            position: relative;
+            height: 100px;
+        }
+
+        #lewy {
+            position: absolute;
+            top: 50px;
+            left: 450px;
+        }
+
+        #prawy {
+            position: absolute;
+            top: 50px;
+            left: 960px;
+        }
+
+        strong {
+            font-size: 30px;
+        }
+
+        #button {
+            border-radius: 30px;
+            width: 140px;
+            height: 40px;
+            font-weight: bold;
+            font-family: Verdana, Geneva, Tahoma, sans-serif
+        }
+        #restart{
+            border-radius: 30px;
+            width: 140px;
+            height: 40px;
+            font-weight: bold;
+            font-family: Verdana, Geneva, Tahoma, sans-serif
+        }
+        #glass{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            top:0;
+            left:0;
+        }
+
+        .hidden {
+            display: none;
+        }
+        .kropka{
+            background-repeat: no-repeat;
+            background-size: 40px 40px;
+            background-image: url("kropka.png");
+        }
+
+    </style>
+
+
+</head>
+
+<body>
+    <div id="naglowek">
+        <div id="lewy"><strong>GRACZ</strong></div>
+        <div id="prawy"><strong>PRZECIWNIK</strong></div>
+    </div>
+    <div id="container">
+        <div id="ships">
+            
+        </div>
+        <table id="lewatable" cellspacing="0">
+        </table>
+        
+        <table id="prawatable" cellspacing="0">
+        </table>
+    </div>
+    <button id="button" class="hidden">Ropzpocznij grę</button>
+    <button id="restart" class="hidden">Restart gry</button>
+    <script>
+
+        var n = 10;
+        var enemyTable = [];
+        var playertable = [];
+        var length = 4;
+        var id = null;
+        var poziomo = true;
+        var oddaneStrzaly = [[-1, -1]];
+        var showMessage = true;
+
+
+        function czyWszystkieStatkiPostawione() {
+            if (document.querySelector("#ships").children.length == 0) {
+                document.querySelector("#button").setAttribute("class", "");
+                var tdLewa = document.querySelectorAll(".td-lewa");
+                tdLewa.forEach(td => td.addEventListener("click", function(){
+                    alert("To twoja plansza");
+                }))
+            }
+        }
+
+        function poNacisnieciuKafelkaPrzeciwnika(td) {
+
+            var x = Array.from(td.parentNode.children).indexOf(td);
+            var y = Array.from(td.parentNode.parentNode.children).indexOf(td.parentNode);
+
+            if (enemyTable[x + 1][y + 1] === 1) {
+                td.textContent = "X";
+                var tdPrawa = document.querySelectorAll(".td-prawa");
+                var counter = 0;
+                for(var i=0;i<tdPrawa.length;i++){
+                    if(tdPrawa[i].textContent === "X"){
+                        counter ++;
+                    }
+                }
+                if(counter === 20){
+                    if(showMessage){
+                        showMessage = false;
+                        setTimeout(function(){
+                            alert("Wygrałeś!");
+                            table2();
+                            document.querySelector("#restart").setAttribute("class", "");
+                        },50)
+                    }
+                         
+                }
+                
+            } else {
+                td.setAttribute("class", "td-prawa kropka");
+                var old_element = td;
+                var new_element = old_element.cloneNode(true);
+                old_element.parentNode.replaceChild(new_element, old_element);
+                document.querySelector("#glass").setAttribute("class", "");
+                ruchKomputera();
+            }
+        }
+
+        function ruchKomputera() {
+            var a = -1
+            var b = -1
+
+            var coordsValid = false;
+            while (coordsValid === false) {
+                coordsValid = true;
+                a = Math.floor(Math.random() * 10);
+                b = Math.floor(Math.random() * 10);
+                for (var i = 0; i < oddaneStrzaly.length; i++) {
+                    if (oddaneStrzaly[i][0] === a && oddaneStrzaly[i][1] === b) {
+                        coordsValid = false;
+                    }
+                }
+            }
+
+            oddaneStrzaly.push([a, b]);
+            setTimeout(function () {
+                
+                if (playertable[a + 1][b + 1] == 1) {
+                    document.querySelector("#lewatable").firstChild.childNodes[b].childNodes[a].textContent = "X";
+                    var tdLewa = document.querySelectorAll(".td-lewa");
+                    var counter = 0;
+                    for(var i=0;i<tdLewa.length;i++){
+                        if(tdLewa[i].textContent === "X"){
+                            counter ++;
+                        }
+                    }
+                    if(counter === 20){
+                        if(showMessage){
+                            showMessage = false;
+                            setTimeout(function(){
+                                alert("Przegrałeś");
+                                table2();
+                                document.querySelector("#restart").setAttribute("class", "");
+                            },50)
+                        }
+                    }else{
+                        document.querySelector("#glass").setAttribute("class", "");
+                        ruchKomputera();
+                    }
+                } else {
+                    document.querySelector("#lewatable").firstChild.childNodes[b].childNodes[a].setAttribute("class", "td-lewa kropka")
+                    document.querySelector("#glass").setAttribute("class", "hidden");
+                }
+            }, 1000)
+        }
+
+        function eventy() {
+            document.getElementById("button").addEventListener("click", function () {
+                document.querySelectorAll(".td-prawa").forEach(td => td.addEventListener("click", () => poNacisnieciuKafelkaPrzeciwnika(td))
+                )
+            })
+
+            document.getElementById("restart").addEventListener("click", function () {
+                n = 10;
+                enemyTable = [];
+                playertable = [];
+                length = 4;
+                id = null;
+                poziomo = true;
+                oddaneStrzaly = [[-1, -1]];
+                showMessage = true;
+                document.getElementById("lewatable").innerHTML = ``;
+                document.getElementById("prawatable").innerHTML = ``;
+                genShips2();
+                tabela(playertable);
+                tabela(enemyTable);
+                genTableLewa();
+                ustawienieStatkow();
+                genTablePrawa();
+                genships();
+                eventy();
+                document.querySelector("#restart").setAttribute("class", "hidden");
+                document.querySelector("#button").setAttribute("class", "hidden");
+            })
+
+        }
+
+        function ustawienieStatkow() {
+
+            for (i = 0; i < id.children.length; i++) {
+                id.children[i].setAttribute("style", "background-color:blue;")
+            }
+
+
+            document.querySelectorAll(".td-lewa").forEach(td => td.addEventListener(
+                "click", function () {
+                    var czyMoznaPostawic = true;
+                    if (id != null) {
+                        if (poziomo == true) {
+                            var x = Array.from(td.parentNode.children).indexOf(td);
+                            var y = Array.from(td.parentNode.parentNode.children).indexOf(td.parentNode);
+                            if(x<playertable.length - 1 - length){
+                                for (var i = -1; i < length + 1; i++) {
+                                    if (playertable[x + 1 + i][y + 1 - 1] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[x + 1 + i][y + 1] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[x + 1 + i][y + 1 + 1] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                }
+
+                                if (czyMoznaPostawic == true) {
+                                    t = td;
+                                    for (var i = 0; i < length; i++) {
+                                        playertable[x + 1 + i][y + 1] = 1;
+                                        t.setAttribute("class", "td-lewa blue");
+                                        t = t.nextSibling;
+                                    }
+                                    length = 0;
+                                    id.parentNode.removeChild(id)
+
+                                    id = null;
+                                    changeColor(td);
+                                    czyWszystkieStatkiPostawione();
+                                }
+                            }else{
+                                for (var i = -1; i < length + 1; i++) {
+                                    if (playertable[playertable.length - length - 1 + i][y + 1 - 1] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[playertable.length - length -1 + i][y + 1] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[playertable.length - length - 1 + i][y + 1 + 1] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                }
+                                
+                                if (czyMoznaPostawic == true) {
+                                    t = td;
+                                    k = td;
+                                    for (var i = 0; i < length; i++) {
+                                        playertable[playertable.length - length - 1 + i][y + 1] = 1;
+                                        if(t != null){
+                                            t.setAttribute("class", "td-lewa blue");
+                                            t = t.nextSibling;
+                                        }else{
+                                            k = k.previousSibling;
+                                            k.setAttribute("class", "td-lewa blue");
+                                        }
+                                    }
+                                    length = 0;
+                                    id.parentNode.removeChild(id)
+
+                                    id = null;
+                                    changeColor(td);
+                                    czyWszystkieStatkiPostawione();
+                                }
+                            }        
+                            
+                        } else {
+                            var x = Array.from(td.parentNode.children).indexOf(td);
+                            var y = Array.from(td.parentNode.parentNode.children).indexOf(td.parentNode);
+
+                            if(y<playertable[x].length - 1 - length){
+                                for (var i = -1; i < length + 1; i++) {
+                                    if (playertable[x + 1 - 1][y + 1 + i] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[x + 1][y + 1 + i] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[x + 1 + 1][y + 1 + i] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+
+                                }
+
+                                if (czyMoznaPostawic == true) {
+                                    t = td.parentNode
+                                    for (var i = 0; i < length; i++) {
+                                        playertable[x + 1][y + 1 + i] = 1;
+                                        t.children[x].setAttribute("class", "td-lewa blue");
+                                        t = t.nextSibling;
+                                    }
+                                    length = 0;
+                                    id.parentNode.removeChild(id)
+                                    id = null;
+                                    changeColor(td);
+                                    czyWszystkieStatkiPostawione();
+                                }
+                            }else{
+                                for (var i = -1; i < length + 1; i++) {
+                                    if (playertable[x + 1 - 1][playertable[x].length - length - 1 + i] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[x + 1][playertable[x].length - length - 1 + i] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+                                    if (playertable[x + 1 + 1][playertable[x].length - length - 1 + i] == 1) {
+                                        czyMoznaPostawic = false;
+                                    }
+
+                                }
+
+                                if (czyMoznaPostawic == true) {
+                                    t = td.parentNode;
+                                    k = td.parentNode; 
+                                    for (var i = 0; i < length; i++) {
+                                        playertable[x + 1][playertable[x].length - length - 1 + i] = 1;
+                                        if(t != null){
+                                            t.children[x].setAttribute("class", "td-lewa blue");
+                                            t = t.nextSibling;
+                                        }else{
+                                            k = k.previousSibling;
+                                            k.children[x].setAttribute("class", "td-lewa blue");
+                                        }
+                                    }
+                                    length = 0;
+                                    id.parentNode.removeChild(id)
+                                    id = null;
+                                    changeColor(td);
+                                    czyWszystkieStatkiPostawione();
+                                }
+                            }
+                        }
+                    }
+                }
+            ))
+            document.querySelectorAll(".td-lewa").forEach(td => td.addEventListener(
+                "contextmenu", function (event) {
+                    event.preventDefault();
+                    if (poziomo == true) {
+                        poziomo = false;
+                    } else {
+                        poziomo = true;
+                    }
+                    changeColor(td);
+                }
+            ))
+            document.querySelectorAll(".td-lewa").forEach(td => td.addEventListener(
+                "mouseover", () => changeColor(td)
+            ))
+
+            function changeColor(td) {
+                var z = document.querySelectorAll(".td-lewa")
+                for (var i = 0; i < z.length; i++) {
+                    z[i].setAttribute("style", "");
+                }
+
+                if (poziomo == true) {
+                    var t = td;
+                    var k = td;
+                    for (var i = 0; i < length; i++) {
+                        if(t != null){
+                            t.setAttribute("style", "background-color:green;");
+                            t = t.nextSibling;
+                        }else{
+                            k = k.previousSibling;
+                            k.setAttribute("style", "background-color:green;");
+                        }
+                    }
+                } else {
+                    var index = Array.from(td.parentNode.children).indexOf(td);
+                    var t = td.parentElement;
+                    var k = td.parentElement;
+                    for (var i = 0; i < length; i++) {
+                        if(t != null){
+                            t.childNodes[index].setAttribute("style", "background-color:green;");
+                            t = t.nextSibling;
+                        }else{
+                            k = k.previousSibling;
+                            k.childNodes[index].setAttribute("style", "background-color:green;");
+                        }
+                    }
+                }
+
+                var x = Array.from(td.parentNode.children).indexOf(td);
+                var y = Array.from(td.parentNode.parentNode.children).indexOf(td.parentNode);
+                var czyMoznaPostawic = true;
+                if (poziomo == true) {
+                    if(x<playertable.length - 1 - length){
+                        for (var i = -1; i < length + 1; i++) {
+                            if (playertable[x + 1 + i][y + 1 - 1] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[x + 1 + i][y + 1] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[x + 1 + i][y + 1 + 1] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                        }
+                    }else{
+                        for (var i = -1; i < length + 1; i++) {
+                            if (playertable[playertable.length - length - 1 + i][y + 1 - 1] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[playertable.length - length - 1 + i][y + 1] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[playertable.length - length - 1 + i][y + 1 + 1] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                        }
+                    }
+                }else {
+                    for (var i = -1; i < length + 1; i++) {
+                        if(y<playertable[x].length - 1 - length){
+                            if (playertable[x + 1 - 1][y + 1 + i] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[x + 1][y + 1 + i] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[x + 1 + 1][y + 1 + i] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                        }else{
+                            if (playertable[x + 1 - 1][playertable[x].length - length - 1 + i] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[x + 1][playertable[x].length - length - 1 + i] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                            if (playertable[x + 1 + 1][playertable[x].length - length - 1 + i] == 1) {
+                                czyMoznaPostawic = false;
+                            }
+                        }
+                    }
+                }
+                if (czyMoznaPostawic == false) {
+                    if (poziomo == true) {
+                        var t = td;
+                        var k = td;
+                        for (var i = 0; i < length; i++) {
+                            if(t != null){
+                                t.setAttribute("style", "background-color:red;");
+                                t = t.nextSibling;
+                            }else{
+                                k = k.previousSibling;
+                                k.setAttribute("style", "background-color:red;");
+                            }
+                        }
+                    } else {
+                        var index = Array.from(td.parentNode.children).indexOf(td);
+                        var t = td.parentElement;
+                        var k = td.parentElement;
+                        for (var i = 0; i < length; i++) {
+                            if(t != null){
+                                t.childNodes[index].setAttribute("style", "background-color:red;");
+                                t = t.nextSibling;
+                            }else{
+                                k = k.previousSibling;
+                                k.childNodes[index].setAttribute("style", "background-color:red;");
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            document.querySelectorAll(".komorka").forEach(komorka => komorka.addEventListener(
+                "click", function () {
+                    document.querySelectorAll(".komorka").forEach(komorka => komorka.setAttribute("style", ""))
+                    for (i = 0; i < komorka.parentElement.children.length; i++) {
+                        komorka.parentElement.children[i].setAttribute("style", "background-color:blue;")
+                    }
+                    id = komorka.parentElement;
+                    length = komorka.parentElement.children.length;
+
+                }
+            ))
+            document.querySelectorAll(".komorka").forEach(komorka => komorka.addEventListener(
+                "mouseover", function () {
+                    if (id != komorka.parentElement) {
+                        for (i = 0; i < komorka.parentElement.children.length; i++) {
+                            komorka.parentElement.children[i].setAttribute("style", "background-color:red;")
+                        }
+                    }
+
+
+                }
+            ))
+            document.querySelectorAll(".komorka").forEach(komorka => komorka.addEventListener(
+                "mouseout", function () {
+                    for (i = 0; i < komorka.parentElement.children.length; i++) {
+                        komorka.parentElement.children[i].setAttribute("style", "")
+                    }
+
+                    if (id != null) {
+                        for (i = 0; i < id.children.length; i++) {
+                            id.children[i].setAttribute("style", "background-color:blue;")
+                        }
+                    }
+                }
+            ))
+        }
+
+
+        function tabela(tab) {
+
+            for (var i = 0; i < n + 2; i++) {
+                tab[i] = row();
+            }
+
+        }
+
+        function row() {
+            var row = [];
+
+            for (var i = 0; i < n + 2; i++) {
+                row[i] = 0;
+            }
+
+            return row;
+        }
+        
+
+        function postawStatek(dlugoscStatku) {
+
+            var postawStatek = false;
+
+            while (postawStatek == false) {
+                var x = Math.floor((Math.random() * (n - dlugoscStatku + 1)) + 1);
+                var y = Math.floor((Math.random() * (n - dlugoscStatku + 1)) + 1);
+                var kier = Math.floor((Math.random() * 2) + 1);
+                var daRadePostawicStatek = true;
+
+
+
+                if (enemyTable[x][y] == 0) {
+                    for (var i = 0; i < dlugoscStatku + 2; i++) {
+                        if (kier == 1) {
+                            if (enemyTable[x - 1 + i][y - 1] == 1 || enemyTable[x - 1 + i][y] == 1 || enemyTable[x - 1 + i][y + 1] == 1) {
+                                daRadePostawicStatek = false;
+                            }
+                        } else {
+                            if (enemyTable[x - 1][y - 1 + i] == 1 || enemyTable[x][y - 1 + i] == 1 || enemyTable[x + 1][y - 1 + i] == 1) {
+                                daRadePostawicStatek = false;
+                            }
+                        }
+
+                    }
+                    if (daRadePostawicStatek == true) {
+                        postawStatek = true;
+                        for (var i = 0; i < dlugoscStatku; i++) {
+                            if (kier == 1) {
+                                enemyTable[x + i][y] = 1;
+                            } else {
+                                enemyTable[x][y + i] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        function table2() {
+            var x = 0;
+            var cells = document.querySelectorAll(".td-prawa");
+
+
+            for (var i = 1; i < n + 1; i++) {
+
+                for (var j = 1; j < n + 1; j++) {
+                    if (enemyTable[j][i] == 1) {
+                        cells[x].style.backgroundColor = "yellow";
+                    } 
+                    x++;
+                }
+
+            }
+
+        }
+
+
+        function genTableLewa() {
+            var row = `<tr class="tr-lewa">`;
+            var table = ``;
+            for (var i = 0; i < n; i++) {
+                row += `<td class="td-lewa"></td>`;
+            }
+            row += `</tr>`;
+
+            for (var i = 0; i < n; i++) {
+                table += row;
+            }
+            document.getElementById("lewatable").innerHTML = table;
+
+        }
+
+
+        function genTablePrawa() {
+            var row = `<tr class="tr-prawa">`;
+            var table = ``;
+            var div = `<div id="glass" class="hidden"></div>`;
+            for (var i = 0; i < n; i++) {
+                row += `<td class="td-prawa"></td>`;
+            }
+            row += `</tr>`;
+
+            for (var i = 0; i < n; i++) {
+                table += row;
+            }
+            document.getElementById("prawatable").innerHTML = table + div;
+            document.getElementById("glass").addEventListener("click", function(){
+                alert("Ruch komputera");
+            })
+
+        }
+
+
+
+
+        function genships() {
+            for (var i = 1, j = 4; i <= 4; i++, j--) {
+                for (var k = 0; k < i; k++) {
+                    postawStatek(j);
+                }
+            }
+        }
+
+        function genShips2() {
+            var ships = `<div id="41" class="poziomo">
+                <div class="komorka"></div>
+                <div class="komorka"></div>
+                <div class="komorka"></div>
+                <div class="komorka"></div>
+                </div>
+                <div id="31" class="poziomo">
+                    <div class="komorka"></div>
+                    <div class="komorka"></div>
+                    <div class="komorka"></div>
+                </div>
+                <div id="32" class="poziomo">
+                    <div class="komorka"></div>
+                    <div class="komorka"></div>
+                    <div class="komorka"></div>
+                </div>
+                <div id="21" class="poziomo">
+                    <div class="komorka"></div>
+                    <div class="komorka"></div>
+                </div>
+                <div id="22" class="poziomo">
+                    <div class="komorka"></div>
+                    <div class="komorka"></div>
+                </div>
+                <div id="23" class="poziomo">
+                    <div class="komorka"></div>
+                    <div class="komorka"></div>
+                </div>
+                <div id="11" class="poziomo">
+                    <div class="komorka"></div>
+                </div>
+                <div id="12" class="poziomo">
+                    <div class="komorka"></div>
+                </div>
+                <div id="13" class="poziomo">
+                    <div class="komorka"></div>
+                </div>
+                <div id="14" class="poziomo">
+                    <div class="komorka"></div>
+                </div>`
+                document.getElementById("ships").innerHTML = ships;
+                id = document.getElementById("41");
+        }
+
+        genShips2();
+        tabela(playertable);
+        tabela(enemyTable)
+        genTableLewa();
+        ustawienieStatkow();
+        genTablePrawa();
+        genships();
+        eventy();
+
+
+    </script>
+
+</body>
+
+</html>
